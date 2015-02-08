@@ -1,0 +1,5 @@
+"""
+Setup script for GCMCbyGULP
+===========================
+
+"""
