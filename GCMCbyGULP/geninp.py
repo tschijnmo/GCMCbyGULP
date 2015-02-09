@@ -24,7 +24,7 @@ def gen_main():
 
     # Generate the simulation task object from the input file.
     simul_task = gen_simul_task_from_YAML(
-        args.input, COMPUTE_PARAM_FUNCS, GET_RES_FUNCS
+        args.input[0], COMPUTE_PARAM_FUNCS, GET_RES_FUNCS
         )
 
     # Generate the input files for the simulation tasks.

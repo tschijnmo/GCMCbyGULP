@@ -49,7 +49,7 @@ def read_main():
 
     # Generate the simulation task object
     simul_task = gen_simul_task_from_YAML(
-        args.input, COMPUTE_PARAM_FUNCS, GET_RES_FUNCS
+        args.input[0], COMPUTE_PARAM_FUNCS, GET_RES_FUNCS
         )
 
     # Gather the results and output to a file

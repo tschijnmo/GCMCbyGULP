@@ -124,7 +124,8 @@ class SimulTask(object):
                 self.params_file = str(v)
 
             # If not, test if it is an fixed parameter or a variable one
-            elif isinstance(v, collections.Sequence):
+            elif (isinstance(v, collections.Sequence) and
+                  not isinstance(v, basestring)):
                 # A sequence heralds a variable parameter.
                 # First split the control sequence if present
                 splitted_parts = str(k).split(':')
@@ -133,15 +134,20 @@ class SimulTask(object):
                 elif len(splitted_parts) == 2:
                     param_tag, ctrl_tag = splitted_parts
                     if ctrl_tag == 'arange':
-                        self.var_params[param_tag] = np.arange(*v)
+                        vals = np.arange(*v)
                     elif ctrl_tag == 'linspace':
-                        self.var_params[param_tag] = np.linspace(*v)
+                        vals = np.linspace(*v)
                     else:
                         raise InvalidInput(
                             'Invalid control tag {} in key {}'.format(
                                 ctrl_tag, k
                                 )
                             )
+                    # Convert back to python data types to satisfy PyYAML.
+                    self.var_params[param_tag] = [
+                        int(i) if isinstance(i, np.int64) else float(i)
+                        for i in vals
+                        ]
                 else:
                     raise InvalidInput(
                         'Invalid key {} with control character'.format(k)
@@ -149,7 +155,7 @@ class SimulTask(object):
             elif not isinstance(v, dict):
                 # If it is not a dictionary, it means that we are at an
                 # atomic node.
-                self.fixed_params[k] == v
+                self.fixed_params[k] = v
 
             else:
                 # We do not support complicated nested dictionary here.
@@ -213,7 +219,8 @@ class SimulTask(object):
 
             # Make the subdirectory and get into it
             subdir_name = self._idxes_2_subdir(params['idxes'])
-            os.makedirs(subdir_name, exist_ok=True)
+            if not os.path.isdir(subdir_name):
+                os.makedirs(subdir_name)
             os.chdir(subdir_name)
 
             # Compute the computed parameters
@@ -410,12 +417,11 @@ class SimulTask(object):
                                                  idxes):
                     new_dict[param] = self.var_params[param][idx]
                     continue
-                new_dict['idxes'] = tuple(idxes)
+                new_dict['idxes'] = list(idxes)
                 yield new_dict
                 continue
-            return
 
-        return ret_gen
+        return ret_gen()
 
 
 # Utility functions
@@ -477,13 +483,15 @@ def gen_simul_task_from_YAML(file_stream, compute_param_funcs, get_res_funcs):
 
     try:
         input_dat = yaml.load(file_stream)
-    except yaml.YAMLError:
+    except yaml.YAMLError as exc:
         raise ValueError(
-            'Invalid input file {}'.format(file_stream.name)
+            'Invalid YAML input file:\n {}'.format(exc.args)
             )
 
     try:
-        simul_task = SimulTask(input_dat)
+        simul_task = SimulTask(
+            input_dat, compute_param_funcs, get_res_funcs
+            )
     except InvalidInput as exc:
         raise ValueError(
             'Invalid input file {file_name}: \n{err_msg}'.format(
