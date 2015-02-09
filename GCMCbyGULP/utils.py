@@ -29,15 +29,14 @@ def ensure_list_of_str(val, tag):
                 if isinstance(i, basestring):
                     ret_val.append(str(i))
                 else:
-                    raise InvalidInput(i)
+                    raise ValueError(i)
                 continue
             return ret_val
         else:
-            raise InvalidInput(val)
-    except InvalidInput as exc:
-        raise InvalidInput(
+            raise ValueError(val)
+    except ValueError as exc:
+        raise ValueError(
             'Invalid value {val} for tag {tag}, string expected!'.format(
                 tag=tag, val=exc.args[0]
                 )
             )
-
