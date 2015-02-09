@@ -114,13 +114,13 @@ class SimulTask(object):
                 self.files = _ensure_list_of_str(v, 'files')
             elif k == 'cmds':
                 self.cmds = _ensure_list_of_str(v, 'cmds')
-            elif k == 'compute_params':
+            elif k == 'compute-params':
                 self.compute_params = _ensure_list_of_str(
-                    v, 'compute_params'
+                    v, 'compute-params'
                     )
             elif k == 'results':
                 self.results = _ensure_list_of_str(v, 'results')
-            elif k == 'params_file':
+            elif k == 'params-file':
                 self.params_file = str(v)
 
             # If not, test if it is an fixed parameter or a variable one
@@ -176,7 +176,7 @@ class SimulTask(object):
         """
 
         widths = [
-            len(i) // 10 + 1 for i in self.var_params.itervalues()
+            (len(i) + 1) // 10 + 1 for i in self.var_params.itervalues()
             ]
         return [
             '{:0%dd}' % i for i in widths
@@ -383,7 +383,7 @@ class SimulTask(object):
         """
 
         return '-'.join(
-            fmt.format(idx)
+            fmt.format(idx + 1)
             for fmt, idx in itertools.izip(self._subdir_fmts, idxes)
             )
 
