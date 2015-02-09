@@ -8,7 +8,8 @@ Result reader for GCMC simulations
 import argparse
 import os.path
 
-from simultask import gen_simul_task_from_file
+from .simultask import gen_simul_task_from_YAML
+from .gulpinter import COMPUTE_PARAM_FUNCS, GET_RES_FUNCS
 
 
 def read_main():
@@ -47,10 +48,11 @@ def read_main():
             out_file = open(out_file_name, 'w')
 
     # Generate the simulation task object
-    simul_task = gen_simul_task_from_file(args.input)
+    simul_task = gen_simul_task_from_YAML(
+        args.input, COMPUTE_PARAM_FUNCS, GET_RES_FUNCS
+        )
 
     # Gather the results and output to a file
-    simul_task.gather_res()
     simul_task.dump_res(args.format, out_file)
 
     return 0

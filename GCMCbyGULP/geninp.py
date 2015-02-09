@@ -7,7 +7,8 @@ The input generator
 
 import argparse
 
-from .simultask import gen_simul_task_from_file
+from .simultask import gen_simul_task_from_YAML
+from .gulpinter import COMPUTE_PARAM_FUNCS, GET_RES_FUNCS
 
 
 def gen_main():
@@ -22,7 +23,9 @@ def gen_main():
     args = parser.parse_args()
 
     # Generate the simulation task object from the input file.
-    simul_task = gen_simul_task_from_file(args.input)
+    simul_task = gen_simul_task_from_YAML(
+        args.input, COMPUTE_PARAM_FUNCS, GET_RES_FUNCS
+        )
 
     # Generate the input files for the simulation tasks.
     simul_task.gen_inp()
