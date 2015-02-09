@@ -21,12 +21,12 @@ def read_main():
                         type=argparse.FileType('r'),
                         help='The name of the JSON/YAML input file'
                         )
-    parser.add_argument('-o', '--out', metavar='FILE', nargs=1,
+    parser.add_argument('-o', '--out', metavar='FILE',
                         type=argparse.FileType('w'),
                         default=argparse.SUPPRESS,
                         help='The output file for dumping the result'
                         )
-    parser.add_argument('-f', '--format', metavar='FORMAT', nargs=1,
+    parser.add_argument('-f', '--format', metavar='FORMAT',
                         type=str, choices=[
                             'txt', 'mat',
                             ],
@@ -38,7 +38,7 @@ def read_main():
     if 'out' in args:
         out_file = args.out
     else:
-        out_file_name = args.input.name.split('.')[0] + '.out',
+        out_file_name = args.input[0].name.split('.')[0] + '.out'
         if os.path.isfile(out_file_name):
             raise ValueError(
                 'The output file {} already exists.'.format(out_file_name) +

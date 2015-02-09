@@ -12,12 +12,14 @@ import itertools
 import os
 import os.path
 import subprocess
+import math
 
 import numpy as np
 import yaml
 import pystache
 
 from .dumpres import dump_res_to_file
+from .utils import ensure_list_of_str
 
 
 #
@@ -111,15 +113,15 @@ class SimulTask(object):
 
             # First test if the key is a global option.
             if k == 'files':
-                self.files = _ensure_list_of_str(v, 'files')
+                self.files = ensure_list_of_str(v, 'files')
             elif k == 'cmds':
-                self.cmds = _ensure_list_of_str(v, 'cmds')
+                self.cmds = ensure_list_of_str(v, 'cmds')
             elif k == 'compute-params':
-                self.compute_params = _ensure_list_of_str(
+                self.compute_params = ensure_list_of_str(
                     v, 'compute-params'
                     )
             elif k == 'results':
-                self.results = _ensure_list_of_str(v, 'results')
+                self.results = ensure_list_of_str(v, 'results')
             elif k == 'params-file':
                 self.params_file = str(v)
 
@@ -182,7 +184,8 @@ class SimulTask(object):
         """
 
         widths = [
-            (len(i) + 1) // 10 + 1 for i in self.var_params.itervalues()
+            math.ceil(math.log(len(i), 10))
+            for i in self.var_params.itervalues()
             ]
         return [
             '{:0%dd}' % i for i in widths
@@ -332,10 +335,11 @@ class SimulTask(object):
                 assert len(get_res_func) == 2
                 assert isinstance(get_res_func[0], int)
                 assert hasattr(get_res_func[1], '__call__')
-                res[i] = np.empty(var_param_lens + (get_res_func[0], ))
+                res[i] = np.empty(var_param_lens + [get_res_func[0], ])
 
         # Loop over all the subdirectories to get the results
-        for idxes in self._iter_var_params():
+        for params in self._iter_var_params():
+            idxes = params['idxes']
 
             # Get into the subdirectory
             subdir = self._idxes_2_subdir(idxes)
@@ -422,42 +426,6 @@ class SimulTask(object):
                 continue
 
         return ret_gen()
-
-
-# Utility functions
-
-def _ensure_list_of_str(val, tag):
-    """Ensures that the given value is a list of strings
-
-    It ensures that the given value is a list of strings and return them, or
-    value error will be raised. If a single string is given, a singleton list
-    will be returned.
-
-    :param val: The value to be ensured to be a list of strings.
-    :param str tag: A tag for the value, used for error reporting.
-    :returns: The ensured list of strings.
-    """
-
-    try:
-        if isinstance(val, basestring):
-            return [str(val), ]
-        elif isinstance(val, collections.abc.Iterable):
-            ret_val = []
-            for i in val:
-                if isinstance(i, basestring):
-                    ret_val.append(str(i))
-                else:
-                    raise InvalidInput(i)
-                continue
-            return ret_val
-        else:
-            raise InvalidInput(val)
-    except InvalidInput as exc:
-        raise InvalidInput(
-            'Invalid value {val} for tag {tag}, string expected!'.format(
-                tag=tag, val=exc.args[0]
-                )
-            )
 
 
 #

@@ -18,6 +18,7 @@ from numpy import linalg
 
 from .simultask import InvalidInput
 from .gasprops import compute_mu_from_TP_gas, compute_rho_from_TP_gas
+from .utils import ensure_list_of_str
 
 
 #
@@ -79,7 +80,9 @@ def get_uptake(params):
 
     # Get the weight of the substrate
     try:
-        ads_atms = params['ads-atoms']
+        ads_atms = ensure_list_of_str(
+            params['ads-atoms'], 'ads-atoms'
+            )
     except KeyError:
         raise InvalidInput(
             'The adsorbant atoms unset in ads-atoms tag to compute uptake.'
@@ -148,8 +151,8 @@ def _get_output_lines(params):
 
     try:
         output_file = open(params['output'], 'r')
-        lines = output_file.readline()
-        output_file.c
+        lines = output_file.readlines()
+        output_file.close()
     except KeyError:
         raise InvalidInput(
             'The output file is not set to compute the result'

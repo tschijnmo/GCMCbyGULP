@@ -107,9 +107,9 @@ def _txt_dump(out_file, var_params, res,
                 )
         continue
     # Form and dump the title
-    title = ''.join(
+    title = ''.join((
         comments, delimiter, delimiter.join(field_titles)
-        )
+        ))
     print(title, file=out_file)
 
     # Write the results
@@ -117,7 +117,7 @@ def _txt_dump(out_file, var_params, res,
         # First add the parameter values
         vals = [
             vals[idx]
-            for vals, idx in itertools.izip(var_params.itervalues(). idxes)
+            for vals, idx in itertools.izip(var_params.itervalues(), idxes)
             ]
         # Add the results values
         for key, n_val in itertools.izip(res_keys, n_vals_4_keys):
