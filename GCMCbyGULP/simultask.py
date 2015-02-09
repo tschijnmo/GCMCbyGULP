@@ -293,7 +293,12 @@ class SimulTask(object):
         in the get_res_funcs dictionary. Then a large numpy tensor is going to
         be created for each of the results that is requested. The variables
         that each of the dimensions correspond to are in the same order as the
-        ordered dictionary in the var_params attribute.
+        ordered dictionary in the var_params attribute. The values in the
+        get_res_funcs  can be a single function, for results with only one real
+        number result. Or it can be a pair of an integer and a function, with
+        the integer giving the number of real numbers in the result. Then the
+        function must return vectors of that length. In the result tensor, the
+        components in the result are going to be the last dimensions.
 
         :returns: A dictionary with the name of the result as the key, and the
             tensor of the results values as the value.
@@ -306,7 +311,21 @@ class SimulTask(object):
         # each variable parameters.
         var_param_lens = [len(i) for i in self.var_params.itervalues()]
         for i in self.results:
-            res[i] = np.empty(var_param_lens)
+            try:
+                get_res_func = self.get_res_funcs[i]
+            except KeyError as exc:
+                raise InvalidInput(
+                    'Requested result {} is not supported!'.format(exc.args[0])
+                    )
+            if hasattr(get_res_func, '__call__'):
+                res[i] = np.empty(var_param_lens)
+            else:
+                # Use assertion to check the format, since it is not user input
+                # but rather plug-in code.
+                assert len(get_res_func) == 2
+                assert isinstance(get_res_func[0], int)
+                assert hasattr(get_res_func[1], '__call__')
+                res[i] = np.empty(var_param_lens + (get_res_func[0], ))
 
         # Loop over all the subdirectories to get the results
         for idxes in self._iter_var_params():
@@ -336,7 +355,10 @@ class SimulTask(object):
 
             # Compute the requested results one-by-one
             for i in self.results:
-                res[i][idxes] = self.get_res_funcs[i](params)
+                get_res_func = self.get_res_funcs[i]
+                if not hasattr(get_res_func, '__call__'):
+                    get_res_func = get_res_func[1]
+                res[i][idxes] = get_res_func(params)
                 continue
 
             # Get back to the parent directory
