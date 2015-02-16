@@ -210,7 +210,7 @@ class SimulTask(object):
             try:
                 f = open(i, 'r')
                 file_contents[os.path.basename(i)] = f.read()
-                i.close()
+                f.close()
             except IOError:
                 raise InvalidInput(
                     'Input file {} cannot be read!'.format(i)
